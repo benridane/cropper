@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Cropper.js</title>
+  <link rel="stylesheet" href="dist/cropper.css">
+  <style>
+    .container {
+      max-width: 640px;
+      margin: 20px auto;
+    }
+
+    img {
+      max-width: 100%;
+    }
+
+    /* Override Cropper's styles */
+    .cropper-view-box,
+    .cropper-face {
+//      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>iPhoneX風フレーム画像メーカー</h1>
+    <h3>画像</h3>
+<input type="file" class="js-fileinput img-upload" accept="image/jpeg,image/png,image/gif">
+    <div>
+      <img id="image" src="docs/images/picture.jpg" alt="Picture">
+    </div>
+    <h3>生成結果</h3>
+    <button type="button" id="button">生成する</button>
+    <div id="result"></div>
+    <div id="result2"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"></script>
+  <script src="./dist/cropper.js"></script>
+  <script>
+
+    function getBackCanvas(sourceCanvas) {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      //var width = sourceCanvas.width;
+      //var height = sourceCanvas.height;
+      var width = 375;
+      var height = sourceCanvas.height -88;
+      canvas.width = width;
+      canvas.height = height;
+      context.beginPath();
+//      context.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, 2 * Math.PI);
+      //context.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, 2 * Math.PI);
+	  context.rect(0,88,width,height-88);//left small bar
+      context.clip();
+      context.stroke();
+      context.drawImage(sourceCanvas, 0, 0, width, height);
+      context.closePath();
+
+      return canvas;
+    }
+
+    function getRoundedCanvas(sourceCanvas) {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      //var width = sourceCanvas.width;
+      //var height = sourceCanvas.height;
+      var width = 375;
+      var height = sourceCanvas.height;
+      canvas.width = width;
+      canvas.height = 88;
+      context.beginPath();
+      context.strokeStyle = 'rgba(255,255,255,1)';
+	  context.rect(0,0,width,height);
+	  context.fill();
+      context.closePath();
+      context.beginPath();
+//      context.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, 2 * Math.PI);
+      //context.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, 2 * Math.PI);
+      context.strokeStyle = 'rgba(0,0,0,0)';
+      context.arc(44, 44, 44, 0, 2 * Math.PI); // left big ball
+	  context.rect(44,0,83-44-6,20);//left small bar
+      context.arc(83-6, 6, 6, 0, 2 * Math.PI); 
+	  context.rect(83-6,6,209+44,40);
+	  context.rect(0,44,209+86+86-1,44);
+
+      context.arc(209+83+44, 44, 44, 0, 2 * Math.PI);
+	  context.rect(209+83+6,0,83-44-6,20);
+      context.arc(209+83+6, 6, 6, 0, 2 * Math.PI);
+      context.clip();
+      context.stroke();
+      //context.drawImage(sourceCanvas, 0, 0, width, height);
+      context.drawImage(sourceCanvas, 0, 0, width, height);
+      context.closePath();
+
+      context.beginPath();
+      context.strokeStyle = 'rgba(255,0,0,1)';
+      context.arc(93+10, 10, 20, 0, 2 * Math.PI);
+	  context.rect(93+10,0,375-103-103,30);
+      context.arc(209+83-20, 10, 20, 0, 2 * Math.PI);
+	  context.fill();
+      context.closePath();
+
+      return canvas;
+    }
+
+$(function() {
+  var $image = $("#image");
+
+  $("input:file").change(function() {
+    var oFReader = new FileReader();
+
+    oFReader.readAsDataURL(this.files[0]);
+
+    oFReader.onload = function (oFREvent) {
+
+      // Destroy the old cropper instance
+      $image.cropper('destroy');
+
+      // Replace url
+      $image.attr('src', this.result);
+      $image.cropper({
+        viewMode: 3,
+        dragMode: 'none',
+        autoCropArea: 1,
+        restore: false,
+        //modal: false,
+        guides: false,
+        highlight: false,
+        cropBoxMovable: true,
+        cropBoxResizable: false,
+        aspectRatio: 1/2,
+        ready: function () {
+          croppable = true;
+        }
+      });
+    };
+  });
+});
+
+    $(function () {
+      var $image = $('#image');
+      var $button = $('#button');
+      var $result = $('#result');
+      var $result2 = $('#result2');
+      var croppable = false;
+	  
+
+
+      $image.cropper({
+        viewMode: 3,
+        dragMode: 'none',
+        autoCropArea: 1,
+        restore: false,
+        //modal: false,
+        guides: false,
+        highlight: false,
+        cropBoxMovable: true,
+        cropBoxResizable: false,
+        aspectRatio: 1/2,
+        ready: function () {
+          croppable = true;
+        }
+      });
+
+      $button.on('click', function () {
+        var croppedCanvas;
+        var roundedCanvas;
+
+        if (!croppable) {
+          return;
+        }
+
+        // Crop
+        croppedCanvas = $image.cropper('getCroppedCanvas');
+
+        // Round
+        roundedCanvas = getRoundedCanvas(croppedCanvas);
+
+        backCanvas = getBackCanvas(croppedCanvas);
+
+        // Show
+        $result.html('<img src="' + roundedCanvas.toDataURL() + '">');
+
+        $result2.html('<img src="' + backCanvas.toDataURL() + '">');
+      });
+    });
+  </script>
+</body>
+</html>
